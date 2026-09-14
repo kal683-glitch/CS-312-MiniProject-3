@@ -10,41 +10,41 @@
     <h1>Hiiii!!! Here are your posts</h1>
     <!-- Input form for a new blog-->
      <form action="/submit" method="POST">
-        <label for="author">Author:</label>
-        <input type="text" name="author" required>
-        <label for="blogTitle">Title:</label>
+        <label for="author">Author:</label><br />
+        <input type="text" name="author" required><br /><br />
+        <label for="blogTitle">Title:</label><br />
         <input type="text" name="blogTitle" required><br /><br />
-        <label for="blogBody">Body:</label>
-        <input type="text" name="blogBody" size ="99" required>
-        <input type="submit" value="Submit">
+        <label for="blogBody">Body:</label><br />
+        <textarea class="body" type="text" name="blogBody" rows="10" cols="30" required></textarea><br />
+        <input type="submit" value="Submit" class="submitButton">
      </form> 
     <!-- Renders the postsArray in Bootstrap cards -->
     <% postsArray.forEach(post => { %>
-        <div class="card" style="width: 100rem;">
+        <div class="card" style="width: 100%;">
             <div class="card-body">
                 <h2 class="card-title"><%= post.blogTitle %></h2>
                 <h3 class="card-subtitle mb-2 text-body-secondary"><%= post.creatorName %></h3>
                 <h4><%= post.creationTime %></h4>
                 <form action="/delete" method="POST">
                     <input type="hidden" name="cardTitle" value="<%= post.blogTitle %>">
-                    <button class="action-delete" id="delete">Delete</button>
-                </form>
+                    <button class="btn btn-primary btn-sm" id="delete">Delete</button>
+                </form> 
                 <form action="/edit" method="POST">
                     <input type="hidden" name="cardTitle" value="<%= post.blogTitle %>">
-                    <button class="action-edit" id="edit">Edit</button>
+                    <button class="btn btn-primary btn-sm" id="edit">Edit</button>
                 </form>
                 <%if(locals.currPost && (currPost.blogTitle === post.blogTitle)){%>
                     <form action='/editSubmit' method='POST'>
-                        <label for='author'>Author:</label>
-                        <input type='text' name='author' value='<%= currPost.creatorName %>'required>
-                        <label for='blogTitle'>Title:</label>
-                        <input type='text' name='blogTitle' value='<%= currPost.blogTitle %>'required>
-                        <label for='blogTime'>Date:</label>
-                        <input type='text' name='blogTime' value='<%= currPost.creationTime %>' required>
-                        <label for='blogBody'>Body:</label>
-                        <input type='text' name='blogBody' value='<%= currPost.blogBody %>'required><br />
+                        <label for='author'>Author:</label><br />
+                        <input type='text' name='author' value='<%= currPost.creatorName %>'required><br />
+                        <label for='blogTitle'>Title:</label><br />
+                        <input type='text' name='blogTitle' value='<%= currPost.blogTitle %>'required><br />
+                        <label for='blogTime'>Date:</label><br />
+                        <input type='text' name='blogTime' value='<%= currPost.creationTime %>' required><br />
+                        <label for='blogBody'>Body:</label><br />
+                        <textarea class="body" type='text' name='blogBody' rows="10" cols="20" required><%= currPost.blogBody %></textarea><br />
                         <input type="hidden" name='oldBlogTitle' value="<%= currPost.blogTitle %>">
-                        <input type='submit' value='Submit'>
+                        <input type='submit' value='Submit' class="submitButton">
                     </form>
                 <%}%>
                 <p class="card-text"> <%= post.blogBody %></p>

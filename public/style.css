@@ -1,3 +1,10 @@
+body{
+    margin-left: 3rem !important;
+    margin-right: 3rem !important;
+    margin-top: 1rem !important;
+    background-color: #FCEAE3 !important;
+}
+
 h1{
     font-family: "Times New Roman", Times, serif;
 }
@@ -16,4 +23,33 @@ h4{
 
 p{
     font-family: "Times New Roman", Times, serif;
+}
+
+.card{
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    background-color: #F5B095 !important;
+}
+
+.btn ,.submitButton{
+    color: #FFFFFF !important;
+    background-color: #7F58DF !important;
+    border-color: #593da0 !important;
+}
+
+input{
+    field-sizing: content;
+    max-width: 100rem;
+    min-width: 10rem;
+}
+
+textarea{
+    resize: none !important;
+}
+
+
+@media (max-width: 360px){
+    body{
+        margin-left: 1rem !important;
+    }
 }
