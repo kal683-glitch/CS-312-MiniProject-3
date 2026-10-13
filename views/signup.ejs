@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1 id="header">Sign up here!</h1>
+    <% if(locals.note){ %>
+        <p><%= note %></p>
+    <% } %>
+    <form action="/signup" method="POST">
+        <label for="user_id">User ID:</label><br />
+        <input type="text" name="user_id" required><br /><br />
+        <label for="username">Username:</label><br />
+        <input type="text" name="username" required><br /><br />
+        <label for="password">Password</label><br />
+        <input type="text" name="password" required><br /><br />
+        <input type="submit" value="Submit" class="submitButton">
+     </form> 
+     <br />
+     <form action="/gotosignin" method="POST">
+        <input type="submit" value="Sign in" class="submitButton">
+     </form> 
+</body>
+</html>

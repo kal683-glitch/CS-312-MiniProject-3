@@ -1,66 +1,52 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-
+import pg from 'pg';
 
 const app = express();
 const port = 3000;
 
-const editInputForm = "<form action='/editSubmit' method='POST'><label for='author'>Author:</label><input type='text' name='author' value='<%= locals.currPost.creatorName %>'required><label for='blogTitle'>Title:</label><input type='text' name='blogTitle' value='<%= locals.currPost.blogTitle %>'required><label for='blogBody'>Body:</label><input type='text' name='blogBody' value='<%= locals.currPost.blogBody %>' required><input type='submit' value='Submit'></form>"
+let usersData = [{name: 1}];
+let blogsData = [{yo: 'wsg'}];
 
-//Array logic for posts
-let postsArray = [{
-  blogTitle: "I'm a blog!",
-  creatorName: "Kenji",
-  creationTime: "August 19, 1975 23:15:30",
-  blogBody: "Create a blog using the input forms above!"
-},];
+let currUser = {};
+
+let currEditPost = {};
+
+const db = new pg.Client({
+  user: "postgres",
+  host: "localhost",
+  //put in your own database and password here!
+  database: "",
+  password: "",
+  port: 5432,
+});
+
+db.connect();
+
+//Queries the database for the users and puts it into the usersData array.
+async function updateUsersData() {
+  const result = await db.query("SELECT * FROM users");
+  let tempUsersData = [];
+  result.rows.forEach((user) =>{
+    tempUsersData.push(user)
+  });
+  usersData = tempUsersData;
+}
+//Queries the database for the blogs and puts it into the blogsData array. 
+async function updateBlogsData(){
+  const result = await db.query("SELECT * FROM blogs");
+  let tempBlogsData = [];
+  result.rows.forEach((user) =>{
+    tempBlogsData.push(user)
+  });
+  blogsData = tempBlogsData;
+}
 
 //Adds the new post data to the postsArray
-function addPost (blogTitle, creatorName, creationTime, blogBody){
-   let tempObj = {};
-   tempObj.blogTitle = blogTitle;
-   tempObj.creatorName = creatorName;
-   tempObj.creationTime = creationTime;
-   tempObj.blogBody = blogBody;
-   postsArray.push(tempObj);
-}
-
-//Deletes a post from the postsArray, and returns the index of the now deleted post
-function deletePost(blogTitle){
-  const index = findPost(blogTitle);
-  if (index !== -1){
-    postsArray.splice(index, 1);
-  }
-  return index;
-}
-
-//Deletes the edited post and inserts a new post into where the post was. Needs the unedited post elements as parameters
-//aswell as the edited elements.
-function editPost(oldBlogTitle, blogTitle, creatorName, creationTime, blogBody){
-  const index = deletePost(oldBlogTitle);
-  if(index !== -1){
-     let tempObj = {};
-     tempObj.blogTitle = blogTitle;
-     tempObj.creatorName = creatorName;
-     tempObj.creationTime = creationTime;
-     tempObj.blogBody = blogBody;
-     postsArray.splice(index, 0, tempObj);
-  }
-}
-
-//return the index of the post object in postsArray using the post's title
-function findPost(blogTitle){
-  //Creates a temporary array that contains the blog titles where all the spaces have been deleted,
-  //aswell as a temporary title where the spaces are removed
-  console.log(blogTitle);
-  let tempArray = [];
-  let tempBlogTitle = blogTitle.replace(/ /g, "");
-  postsArray.forEach(blog => {
-    tempArray.push(blog.blogTitle.replace(/ /g, ""));
-  });
-   //Tests the temporary array against the tempBlogTitle that have all had their whitespace removed,
-   //and returns the resulting index.
-  return(tempArray.findIndex(title => title === tempBlogTitle));
+async function addPost (blogTitle, creationTime, blogBody){
+   await db.query("INSERT INTO blogs (creator_name, creator_user_id, title, body, date_created) VALUES ($1, $2, $3, $4, $5)", 
+    [currUser.name, currUser.user_id, blogTitle, blogBody, creationTime]
+  );
 }
 
 app.use(express.static('public'));
@@ -69,40 +55,98 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
-app.get('/', (req, res) => {
-  res.render("index.ejs", {postsArray: postsArray});
+app.get('/', async (req, res) => {
+  await updateBlogsData();
+  await updateUsersData();
+  res.render("signin.ejs");
 });
 
 //responds to the "submit" button in the form
-app.post('/submit', (req, res) => {
+app.post('/submit', async(req, res) => {
   let currDate = new Date();
-  addPost(req.body["blogTitle"], req.body["author"], currDate, req.body["blogBody"]);
-  res.render("index.ejs", {postsArray: postsArray});
+  await addPost(req.body["blogTitle"], currDate, req.body["blogBody"]);
+  await updateBlogsData();
+  res.render("index.ejs", {postsArray: blogsData});
 })
 
 //responds to the "delete" button
-app.post("/delete", (req, res) =>{
-  //console.log("deleteskies");
-  deletePost(req.body.cardTitle);
-  res.render("index.ejs", {postsArray: postsArray});
+app.post("/delete", async (req, res) =>{
+  if (req.body.user_id === currUser.user_id){
+    await db.query("DELETE FROM blogs WHERE title = $1", [req.body.cardTitle]);
+    await updateBlogsData();
+  }
+  res.render("index.ejs", {postsArray: blogsData});
 })
 
 //responds to the "edit" button, opens up an input menu with the variable "editInput";
-app.post("/edit", (req, res) => {
-  //console.log("reg edit");
-  const currCardTitle = req.body.cardTitle;
-  const currCardIndex = findPost(currCardTitle);
-  const currPost = postsArray[currCardIndex];
-  res.render("index.ejs", {postsArray: postsArray, currPost: currPost});
+app.post("/edit", async (req, res) => {
+  if(currUser.user_id === req.body.creator_user_id){
+    currEditPost = {blog_id: req.body.blog_id, creator_name: req.body.creator_name, 
+    creator_user_id: req.body.creator_user_id, title: req.body.title, 
+    body: req.body.body, date_created: req.body.date_created};
+    res.render("index.ejs", {postsArray: blogsData, currPost: currEditPost});
+    console.log("win!");
+  }else{
+    res.render("index.ejs", {postsArray: blogsData});
+    console.log("fail");
+  }
 })
 
 //responds to when the "Submit" button is clicked in the edit input, calls the "editPost" function and re-renders
 //the page
-app.post("/editSubmit", (req, res) => {
-  editPost(req.body.oldBlogTitle, req.body.blogTitle, req.body.author, req.body.blogTime, req.body.blogBody);
-  res.render("index.ejs", {postsArray: postsArray});
-  //console.log(postsArray);
+app.post("/editSubmit", async(req, res) => {
+  await db.query("UPDATE blogs SET title = $1 WHERE blog_id = $2", [req.body.title, currEditPost.blog_id]);
+  await db.query("UPDATE blogs SET body = $1 WHERE blog_id = $2", [req.body.body, currEditPost.blog_id]);
+  await updateBlogsData();
+  res.render("index.ejs", {postsArray: blogsData});
 })
+
+app.post("/signin", (req, res) =>{
+  let user_id = req.body.user_id;
+  let password = req.body.password;
+  let foundUser = false;
+  usersData.forEach(user =>{
+    if(user.user_id === user_id){
+      if(user.password === password){
+        currUser = user;
+        foundUser = true;
+        console.log(currUser);
+      }
+    }
+  });
+  if (foundUser){
+    res.render("index.ejs", {postsArray: blogsData});
+  } else {
+    res.render("signin.ejs", {note: "Wrong password or User ID. Try again!"});
+  }
+});
+
+app.post("/gotosignup", (req, res) =>{
+  res.render("signup.ejs");
+});
+
+app.post("/signup", async (req, res) => {
+  let user_id = req.body.user_id;
+  let password = req.body.password;
+  let username = req.body.username;
+  let foundUser = false;
+  usersData.forEach(user =>{
+    if((user.user_id === user_id) || (user.username === username)){
+      foundUser = true;
+    }
+  });
+  if (foundUser){
+    res.render("signup.ejs", {note: "Choose a different User ID or Username!"});
+  } else{
+    await db.query("INSERT INTO users (user_id, password, name) VALUES ($1, $2, $3)", [user_id, password, username]);
+    await updateUsersData();
+    res.render("signin.ejs", {note: "Sign in with your new credentials!"});
+  }
+});
+
+app.post("/gotosignin", (req, res) =>{
+  res.render("signin.ejs");
+});
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

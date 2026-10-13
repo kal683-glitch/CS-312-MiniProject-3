@@ -10,8 +10,6 @@
     <h1>Hiiii!!! Here are your posts</h1>
     <!-- Input form for a new blog-->
      <form action="/submit" method="POST">
-        <label for="author">Author:</label><br />
-        <input type="text" name="author" required><br /><br />
         <label for="blogTitle">Title:</label><br />
         <input type="text" name="blogTitle" required><br /><br />
         <label for="blogBody">Body:</label><br />
@@ -22,32 +20,34 @@
     <% postsArray.forEach(post => { %>
         <div class="card" style="width: 100%;">
             <div class="card-body">
-                <h2 class="card-title"><%= post.blogTitle %></h2>
-                <h3 class="card-subtitle mb-2 text-body-secondary"><%= post.creatorName %></h3>
-                <h4><%= post.creationTime %></h4>
+                <h2 class="card-title"><%= post.title %></h2>
+                <h3 class="card-subtitle mb-2 text-body-secondary"><%= post.creator_name %>, <%= post.creator_user_id %></h3>
+                <h4><%= post.date_created %></h4>
                 <form action="/delete" method="POST">
-                    <input type="hidden" name="cardTitle" value="<%= post.blogTitle %>">
+                    <input type="hidden" name="cardTitle" value="<%= post.title %>">
+                    <input type="hidden" name="user_id" value="<%= post.creator_user_id %>">
                     <button class="btn btn-primary btn-sm" id="delete">Delete</button>
                 </form> 
                 <form action="/edit" method="POST">
-                    <input type="hidden" name="cardTitle" value="<%= post.blogTitle %>">
+                    <input type="hidden" name="blog_id" value="<%= post.blog_id %>">
+                    <input type="hidden" name="title" value="<%= post.title %>">
+                    <input type="hidden" name="creator_user_id" value="<%= post.creator_user_id %>">
+                    <input type="hidden" name="creator_name" value="<%= post.creator_name %>">
+                    <input type="hidden" name="body" value="<%= post.body %>">
+                    <input type="hidden" name="date_created" value="<%= post.date_created %>">
                     <button class="btn btn-primary btn-sm" id="edit">Edit</button>
                 </form>
-                <%if(locals.currPost && (currPost.blogTitle === post.blogTitle)){%>
+                <%if(locals.currPost && (currPost.title === post.title)){%>
                     <form action='/editSubmit' method='POST'>
-                        <label for='author'>Author:</label><br />
-                        <input type='text' name='author' value='<%= currPost.creatorName %>'required><br />
                         <label for='blogTitle'>Title:</label><br />
-                        <input type='text' name='blogTitle' value='<%= currPost.blogTitle %>'required><br />
-                        <label for='blogTime'>Date:</label><br />
-                        <input type='text' name='blogTime' value='<%= currPost.creationTime %>' required><br />
+                        <input type='text' name='title' value='<%= currPost.title %>'required><br />
                         <label for='blogBody'>Body:</label><br />
-                        <textarea class="body" type='text' name='blogBody' rows="10" cols="20" required><%= currPost.blogBody %></textarea><br />
-                        <input type="hidden" name='oldBlogTitle' value="<%= currPost.blogTitle %>">
+                        <textarea class="body" type='text' name='body' rows="10" cols="20" required><%= currPost.body %></textarea><br />
+                        <!-- <input type="hidden" name='oldBlogTitle' value=""> -->
                         <input type='submit' value='Submit' class="submitButton">
                     </form>
                 <%}%>
-                <p class="card-text"> <%= post.blogBody %></p>
+                <p class="card-text"> <%= post.body %></p>
             </div>
         </div>
     <%});%>
